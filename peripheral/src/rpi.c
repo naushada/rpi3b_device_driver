@@ -9,7 +9,7 @@ void rpi_write(unsigned int base_addr,
                unsigned int value) {
 
   volatile unsigned int *addr;
-  addr  = (base_addr + offset);
+  addr  = (volatile unsigned int *)(base_addr + offset);
   *addr = value;
 }/*rpi_write*/
 
@@ -17,7 +17,7 @@ unsigned int rpi_read(unsigned int base_addr,
                       unsigned int offset) {
 
   volatile unsigned int *addr;
-  addr = (base_addr + offset);
+  addr = (volatile unsigned int *)(base_addr + offset);
   return(*addr);
 }/*rpi_read*/
 
@@ -29,7 +29,7 @@ unsigned int rpi_read(unsigned int base_addr,
 
 MODULE_VERSION("2.1");
 MODULE_AUTHOR("Mohammed Naushad Ahmed");
-MODULE_DESCRIPTION("Raspberry Pi3 Peripheral");
+MODULE_DESCRIPTION("Raspberry Pi3B Peripheral");
 MODULE_LICENSE("GPL");
 
 #endif /* __RPI_C__ */

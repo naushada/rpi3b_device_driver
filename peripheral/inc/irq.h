@@ -83,11 +83,6 @@ typedef struct {
 
 
 
-void irq_init(void);
-
-void irq_close(void);
-
-
 void irq_register(unsigned int irq_no, 
                   void (*irq_cb)(void *arg), 
                   void *arg);
