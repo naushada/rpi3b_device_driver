@@ -7,7 +7,9 @@ SRCS = main.c \
        uart.c \
        irq.c \
        ivt.c \
-       rpi.c
+       rpi.c \
+       spi.c \
+       spi0.c
 
 ccflags-y := $(INCLUDE_DIR)
 

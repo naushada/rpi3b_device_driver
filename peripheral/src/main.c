@@ -75,8 +75,8 @@ module_init(main_init);
 module_exit(main_cleanup);
 
 MODULE_VERSION("2.1");
-MODULE_AUTHOR("Naushad");
-MODULE_DESCRIPTION("A Simple Hello World module");
+MODULE_AUTHOR("Mohammed Naushad Ahmed");
+MODULE_DESCRIPTION("Raspberry Pi3B Peripheral");
 MODULE_LICENSE("GPL");
 
 #endif /* __MAIN_C__ */

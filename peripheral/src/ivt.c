@@ -9,14 +9,14 @@
 /* Updates contents of 'vector' to contain LDR pc, [pc, #offset] */
 /* instruction to cause long branch to address in `location'. */
 /* Function return value is original contents of 'vector'. */
-unsigned Install_Handler(unsigned *location, unsigned int *vector) {
+unsigned Install_Handler(unsigned int location, unsigned int *vector) {
   unsigned int vec;
   unsigned int oldvec;
 
-  vec = (unsigned)location - (((unsigned)vector - 0x8) | 0xe59ff000);
+  vec = (location - (*vector - 0x8)) | LDR;
   oldvec = *vector;
   *vector = vec;
-  printk("\nInstall Handler\n");
+  printk(KERN_INFO "Install Handler oldvec is 0x%X\n", oldvec);
   return(oldvec);
 }/*Install_Handler*/
 
@@ -64,15 +64,21 @@ void disable_IRQ(void) {
 
 unsigned int ivt_main(void) {
   unsigned int ret_addr; 
-  unsigned int ivt_vec = 0x0;
-  unsigned pIRQHandler = (unsigned)IRQHandler;
+  unsigned int ivt_vec = 0x00000018;
+  void (*pIRQHandler)(void) = IRQHandler;
 
   ret_addr = rpi_read((unsigned int)RPI_IVT_BASE, IVT_IRQ);
-  printk(KERN_INFO "IVT_IRQ Value is 0x%X\n", ret_addr);
+  printk(KERN_INFO "IVT_IRQ Value is 0x%X Handler address is 0x%X\n", ret_addr, (unsigned int)pIRQHandler);
 
-  ret_addr = Install_Handler(&pIRQHandler, &ivt_vec);
+  ret_addr = rpi_read((unsigned int)RPI_IVT_BASE, IVT_FIQ);
+  printk(KERN_INFO "IVT_FIQ Value is 0x%X Handler address is 0x%X\n", ret_addr, (unsigned int)pIRQHandler);
+
+  ret_addr = Install_Handler((unsigned int)pIRQHandler, &ivt_vec);
+  printk(KERN_INFO "Value of ivt_vec is 0x%X\n", ivt_vec);
   rpi_write((unsigned int)RPI_IVT_BASE, IVT_IRQ, ivt_vec);
 
+  ret_addr = rpi_read((unsigned int)RPI_IVT_BASE, IVT_IRQ);
+  printk(KERN_INFO "After Update IVT_IRQ Value is 0x%X\n", ret_addr);
   return(ret_addr);
 }/*ivt_main*/
 

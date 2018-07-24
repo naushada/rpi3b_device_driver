@@ -10,7 +10,12 @@
 #define IVT_IRQ             (0x18 >> SHIFT)
 #define IVT_FIQ             (0x1C >> SHIFT)
 
-unsigned Install_Handler(unsigned int *location, 
+/*B AL <address>*/
+#define BAL   0xEA000000
+/*LDR AL pc,<immediate address>*/
+#define LDR   0xE59FF000
+
+unsigned Install_Handler(unsigned int location, 
                          unsigned int *vector);
 
 void IRQHandler(void);

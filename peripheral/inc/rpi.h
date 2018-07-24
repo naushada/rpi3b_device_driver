@@ -1,6 +1,12 @@
 #ifndef __RPI_H__
 #define __RPI_H__
 
+/* @brief: 
+    The ARM-side physical address where peripherals are mapped. This is 0x20000000 
+    on the Pi Zero, Pi Zero W, and the first generation of the Raspberry Pi and Compute Module, 
+    and 0x3f000000 on the Pi 2, Pi 3 and Compute Module 3
+ */
+
 /*
  * http://embedded-xinu.readthedocs.io/en/latest/arm/rpi/BCM2835-Interrupt-Controller.html
  */
