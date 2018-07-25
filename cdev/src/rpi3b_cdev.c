@@ -18,17 +18,17 @@ static unsigned int device_major[32];
 
 static const struct file_operations fops = {
   .owner   = THIS_MODULE,
-  .read    = rpi_read,
-  .write   = rpi_write,
-  .open    = rpi_open,
-  .release = rpi_release,
+  .read    = rpi3b_read,
+  .write   = rpi3b_write,
+  .open    = rpi3b_open,
+  .release = rpi3b_release,
 };
 
 
-static ssize_t rpi_write(struct file *fp, 
-                         const char *in_ptr, 
-                         size_t in_len, 
-                         loff_t *offset) {
+ssize_t rpi3b_write(struct file *fp, 
+                  const char *in_ptr, 
+                  size_t in_len, 
+                  loff_t *offset) {
 #if 0
   if(in_len <= 0)
     return 0;
@@ -47,16 +47,16 @@ static ssize_t rpi_write(struct file *fp,
   }
 
   return(in_len);
-}/*rpi_write*/
+}/*rpi3b_write*/
 
 /*https://linux-kernel-labs.github.io/master/labs/device_drivers.html*/
-static int rpi_open(struct inode *object, struct file *fp) {
+int rpi3b_open(struct inode *object, struct file *fp) {
 
  printk(KERN_INFO "f_mode %d f_pos %lld f_flags %d",
           fp->f_mode, fp->f_pos, fp->f_flags);
 
   return(0);
-}/*rpi_open*/
+}/*rpi3b_open*/
 
 
 int rpi3b_cdev_init(void) {
@@ -79,17 +79,20 @@ int rpi3b_cdev_init(void) {
 
 
 
-static int rpi_release(struct inode *object, struct file *fp) {
+int rpi3b_release(struct inode *object, struct file *fp) {
 
   return(0);
-}/*rpi_release*/
+}/*rpi3b_release*/
 
 
 
-static ssize_t rpi_read(struct file *fp, char *in_ptr, size_t in_len, loff_t *offset) {
+ssize_t rpi3b_read(struct file *fp, 
+                   char *in_ptr, 
+                   size_t in_len, 
+                   loff_t *offset) {
 
   return(in_len);
-}/*rpi_read*/
+}/*rpi3b_read*/
 
 
 MODULE_VERSION("2.1");

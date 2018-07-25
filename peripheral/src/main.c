@@ -7,6 +7,7 @@
 #include "ivt.h"
 #include "irq.h"
 #include "uart.h"
+#include "rpi3b_cdev.h"
 
 void Fn(void *arg) {
   printk(KERN_INFO "\nCallback is calledFn\n");
@@ -58,7 +59,9 @@ int main(int argc, char *argv[]) {
 
 static int __init main_init(void)
 {
-  printk(KERN_INFO "Hello world!\n");
+  printk(KERN_INFO "RPI 3B CDEV Init\n");
+  rpi3b_cdev_init();
+
   ivt_main();
   /*Initialization Part*/
   uart0_main();
