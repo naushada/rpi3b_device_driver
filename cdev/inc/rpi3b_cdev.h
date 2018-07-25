@@ -12,4 +12,6 @@ ssize_t rpi3b_write(struct file *, const char *, size_t, loff_t *);
 
 int rpi3b_cdev_init(void);
 
+int rpi3b_cdev_destroy(void);
+
 #endif /* __RPI3B_CDEV_H__ */

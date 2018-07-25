@@ -77,6 +77,17 @@ int rpi3b_cdev_init(void) {
 }/*rpi3b_cdev_init*/
 
 
+int rpi3b_cdev_destroy(void) {
+  unsigned int idx;
+
+  for(idx = 0; device_name[idx]; idx++) {
+    /*device_major number will be allocated by kernel*/
+    unregister_chrdev(device_major[idx], device_name[idx]);
+  }
+
+  /*Success*/
+  return(0);
+}/*rpi3b_cdev_destroy*/
 
 
 int rpi3b_release(struct inode *object, struct file *fp) {
