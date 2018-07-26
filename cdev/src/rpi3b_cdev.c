@@ -15,6 +15,8 @@ static unsigned char *device_name[] = { "/uart/uart0" ,
 
 /*This holds the opened device major NUmber*/
 static unsigned int device_major[32];
+static struct cdev device_cdev[32];
+static struct class *device_class[32];
 
 static const struct file_operations fops = {
   .owner   = THIS_MODULE,
@@ -61,14 +63,36 @@ int rpi3b_open(struct inode *object, struct file *fp) {
 
 int rpi3b_cdev_init(void) {
   unsigned int idx;
+  unsigned char dev_name[64];
+
+  memset((void *)dev_name, 0, sizeof(dev_name));
 
   for(idx = 0; device_name[idx]; idx++) {
-    /*device_major number will be allocated by kernel*/
-    device_major[idx] = register_chrdev(0, device_name[idx], &fops);
+    snprintf(dev_name, sizeof(dev_name), "%s/_proc",device_name[idx]);
+    /* cat /proc/devices */
+    if(alloc_chrdev_region(&device_major[idx], idx, 32, dev_name) < 0) {
+      printk(KERN_INFO "alloc_chrdev_region failed device_major[%d] %d\n", idx, device_major[idx]);
+      return(-1);
+    }
+    
+    memset((void *)dev_name, 0, sizeof(dev_name));
+    snprintf(dev_name, sizeof(dev_name), "%s/_sys",device_name[idx]);
+    /* ls /sys/class */
+    if((device_class[idx] = class_create(THIS_MODULE, dev_name)) == NULL) {
+      printk(KERN_INFO "device_class failed for device_major[%d] %d\n", idx, device_major[idx]);
+      return(-1);
+    }
 
-    if(device_major[idx] < 0) {
-      printk(KERN_INFO "Device [%s] registration failed\n", device_name[idx]);
-      return(device_major[idx]);
+    /* ls /dev/ */
+    if(device_create(device_class[idx], NULL, device_major[idx], NULL, device_name[idx]) == NULL) {
+      printk(KERN_INFO "device_create failed for device_major[%d] %d\n", idx, device_major[idx]);
+      return(-1);
+    }
+
+    cdev_init(&device_cdev[idx], &fops);
+    if(cdev_add(&device_cdev[idx], device_major[idx], 1) == -1) {
+      printk(KERN_INFO "cdev_add failed for device_major[%d] %d\n", idx, device_major[idx]);
+      return(-1);
     }
   }
 
@@ -81,8 +105,10 @@ int rpi3b_cdev_destroy(void) {
   unsigned int idx;
 
   for(idx = 0; device_name[idx]; idx++) {
-    /*device_major number will be allocated by kernel*/
-    unregister_chrdev(device_major[idx], device_name[idx]);
+    device_destroy(device_class[idx], device_major[idx]);
+    cdev_del(&device_cdev[idx]);
+    class_destroy(device_class[idx]);
+    unregister_chrdev_region(device_major[idx], 1); 
   }
 
   /*Success*/

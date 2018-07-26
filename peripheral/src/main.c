@@ -62,7 +62,7 @@ static int __init main_init(void)
   printk(KERN_INFO "RPI 3B CDEV Init\n");
   rpi3b_cdev_init();
 
-  ivt_main();
+  //ivt_main();
   /*Initialization Part*/
   uart0_main();
   /*Non-zero return means that the module couldn't be loaded.*/
@@ -72,6 +72,7 @@ static int __init main_init(void)
 static void __exit main_cleanup(void)
 {
   printk(KERN_INFO "Cleaning up module.\n");
+  rpi3b_cdev_destroy();
 }
 
 module_init(main_init);
