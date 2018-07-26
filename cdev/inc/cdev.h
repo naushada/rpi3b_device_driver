@@ -8,7 +8,6 @@ typedef struct {
   unsigned int device_major;
   struct cdev  device_cdev;
   struct class *device_class;
-  struct file file;
 }cdev_ctx_t;
 
 

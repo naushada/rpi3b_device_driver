@@ -3,6 +3,7 @@
 
 #include "common.h"
 #include "cdev.h"
+#include "uart.h"
 
 static cdev_ctx_t __g_cdev_ctx[32];
 
@@ -45,6 +46,7 @@ ssize_t __cdev_write(struct file *fp,
   unsigned int idx;
   for(idx = 0; idx < in_len; idx++) {
     printk(KERN_INFO "%X", in_ptr[idx]);
+    uart0_send_data(in_ptr[idx]);
   }
 
   /*To flush the last element*/
@@ -55,18 +57,37 @@ ssize_t __cdev_write(struct file *fp,
 
 /*https://linux-kernel-labs.github.io/master/labs/device_drivers.html*/
 int __cdev_open(struct inode *object, struct file *fp) {
+
   char fname[64];
-  unsigned int idx;
 
   memset((void *)fname, 0, sizeof(fname));
   __cdev_get_fname(fp, fname);
+
   printk(KERN_INFO "fname is %s\n", fname);
 
-  for(idx = 0; device_name[idx]; idx++) {
-    if(!strncmp(fname, device_name[idx], sizeof(fname))) {
-      memcpy((void *)&__g_cdev_ctx[idx].file, fp, sizeof(struct file));
-      break;
-    }
+  if(!strncmp(fname, "/dev/rpi3b/uart/uart0", sizeof(fname))) {
+    uart0_main();  
+
+  } else if(!strncmp(fname, "/dev/rpi3b/uart/uart1", sizeof(fname))) {
+    uart0_main();  
+
+  } else if(!strncmp(fname, "/dev/rpi3b/gpio", sizeof(fname))) {
+    uart0_main();  
+
+  } else if(!strncmp(fname, "/dev/rpi3b/spim/spi0", sizeof(fname))) {
+    uart0_main();  
+
+  } else if(!strncmp(fname, "/dev/rpi3b/spim/spi1", sizeof(fname))) {
+    uart0_main();  
+
+  } else if(!strncmp(fname, "/dev/rpi3b/spis/spi0", sizeof(fname))) {
+    uart0_main();  
+
+  } else if(!strncmp(fname, "/dev/rpi3b/spis/spi1", sizeof(fname))) {
+    uart0_main();  
+
+  } else {
+    printk(KERN_INFO "Invalid device file name\n");
   }
 
   return(0);
@@ -82,8 +103,13 @@ int __cdev_init(void) {
   for(idx = 0; device_name[idx]; idx++) {
     snprintf(dev_name, sizeof(dev_name), "%s/_proc",device_name[idx]);
     /* cat /proc/devices */
-    if(alloc_chrdev_region(&__g_cdev_ctx[idx].device_major, idx, 32, dev_name) < 0) {
-      printk(KERN_INFO "alloc_chrdev_region failed device_major[%d] %d\n", idx, __g_cdev_ctx[idx].device_major);
+    if(alloc_chrdev_region(&__g_cdev_ctx[idx].device_major, 
+                           idx, 
+                           32, 
+                           dev_name) < 0) {
+      printk(KERN_INFO "alloc_chrdev_region failed device_major[%d] %d\n", 
+                        idx, 
+                        __g_cdev_ctx[idx].device_major);
       return(-1);
     }
     
@@ -91,19 +117,29 @@ int __cdev_init(void) {
     snprintf(dev_name, sizeof(dev_name), "%s/_sys",device_name[idx]);
     /* ls /sys/class */
     if((__g_cdev_ctx[idx].device_class = class_create(THIS_MODULE, dev_name)) == NULL) {
-      printk(KERN_INFO "device_class failed for device_major[%d] %d\n", idx, __g_cdev_ctx[idx].device_major);
+      printk(KERN_INFO "device_class failed for device_major[%d] %d\n", 
+                        idx, 
+                        __g_cdev_ctx[idx].device_major);
       return(-1);
     }
 
     /* ls /dev/ */
-    if(device_create(__g_cdev_ctx[idx].device_class, NULL, __g_cdev_ctx[idx].device_major, NULL, device_name[idx]) == NULL) {
-      printk(KERN_INFO "device_create failed for device_major[%d] %d\n", idx, __g_cdev_ctx[idx].device_major);
+    if(device_create(__g_cdev_ctx[idx].device_class, 
+                     NULL, 
+                     __g_cdev_ctx[idx].device_major, 
+                     NULL, 
+                     device_name[idx]) == NULL) {
+      printk(KERN_INFO "device_create failed for device_major[%d] %d\n", 
+                        idx, 
+                        __g_cdev_ctx[idx].device_major);
       return(-1);
     }
 
     cdev_init(&__g_cdev_ctx[idx].device_cdev, &fops);
     if(cdev_add(&__g_cdev_ctx[idx].device_cdev, __g_cdev_ctx[idx].device_major, 1) == -1) {
-      printk(KERN_INFO "cdev_add failed for device_major[%d] %d\n", idx, __g_cdev_ctx[idx].device_major);
+      printk(KERN_INFO "cdev_add failed for device_major[%d] %d\n", 
+                        idx, 
+                        __g_cdev_ctx[idx].device_major);
       return(-1);
     }
   }
@@ -112,12 +148,12 @@ int __cdev_init(void) {
   return(0);
 }/*__cdev_init*/
 
-
 int __cdev_destroy(void) {
   unsigned int idx;
 
   for(idx = 0; device_name[idx]; idx++) {
-    device_destroy(__g_cdev_ctx[idx].device_class, __g_cdev_ctx[idx].device_major);
+    device_destroy(__g_cdev_ctx[idx].device_class, 
+                   __g_cdev_ctx[idx].device_major);
     cdev_del(&__g_cdev_ctx[idx].device_cdev);
     class_destroy(__g_cdev_ctx[idx].device_class);
     unregister_chrdev_region(__g_cdev_ctx[idx].device_major, 1); 
@@ -127,28 +163,45 @@ int __cdev_destroy(void) {
   return(0);
 }/*__cdev_destroy*/
 
-
 int __cdev_release(struct inode *object, struct file *fp) {
   char fname[64];
   
   memset((void *)fname, 0, sizeof(fname));
   __cdev_get_fname(fp, fname);
-  printk(KERN_INFO "Path %s has been closed\n", fname);
+  printk(KERN_INFO "fname %s has been closed\n", fname);
 
+  if(!strncmp(fname, "/dev/rpi3b/uart/uart0", sizeof(fname))) {
+    uart0_flush_fifo();
+    uart0_disable();  
+
+  } else if(!strncmp(fname, "/dev/rpi3b/uart/uart1", sizeof(fname))) {
+
+  } else if(!strncmp(fname, "/dev/rpi3b/gpio", sizeof(fname))) {
+
+  } else if(!strncmp(fname, "/dev/rpi3b/spim/spi0", sizeof(fname))) {
+
+  } else if(!strncmp(fname, "/dev/rpi3b/spim/spi1", sizeof(fname))) {
+
+  } else if(!strncmp(fname, "/dev/rpi3b/spis/spi0", sizeof(fname))) {
+
+  } else if(!strncmp(fname, "/dev/rpi3b/spis/spi1", sizeof(fname))) {
+
+  } else {
+    printk(KERN_INFO "Invalid device file name\n");
+  }
   return(0);
 }/*__cdev_release*/
 
-
-
 ssize_t __cdev_read(struct file *fp, 
-                  char *in_ptr, 
-                  size_t in_len, 
-                  loff_t *offset) {
+                    char *in_ptr, 
+                    size_t in_len, 
+                    loff_t *offset) {
 
   char fname[64];
   
   memset((void *)fname, 0, sizeof(fname));
   __cdev_get_fname(fp, fname);
+
   printk(KERN_INFO "Path %s has been READ\n", fname);
   strcpy(in_ptr, "From Kernel\n");
   
@@ -158,6 +211,7 @@ ssize_t __cdev_read(struct file *fp,
 int __cdev_get_fname(struct file *fp, char *fname) {
 
   char *tmp;
+  char *tmp_fname;
 
   printk(KERN_INFO "f_mode %d f_pos %lld f_flags %d",
            fp->f_mode, fp->f_pos, fp->f_flags);
@@ -168,16 +222,17 @@ int __cdev_get_fname(struct file *fp, char *fname) {
     printk(KERN_INFO "Memory Allocation Failed\n"); 
     return -ENOMEM;
   }
+  
+  /*Returns pointer into tmp*/
+  tmp_fname = d_path(&fp->f_path, tmp, PAGE_SIZE);
 
-  fname = d_path(&fp->f_path, tmp, PAGE_SIZE);
-
-  if(IS_ERR(fname)) {
+  if(IS_ERR(tmp_fname)) {
     printk(KERN_INFO "d_path Failed\n"); 
     free_page((unsigned long)tmp);
-    return PTR_ERR(fname);
+    return PTR_ERR(tmp_fname);
   }
 
-  printk(KERN_INFO "path_name is %s\n", fname);
+  memcpy((void *)fname, (const char *)tmp_fname, strlen(tmp_fname));
   free_page((unsigned long)tmp);
 
   return(0);

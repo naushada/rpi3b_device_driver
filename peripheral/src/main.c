@@ -2,10 +2,6 @@
 #define __MAIN_C__
 
 #include "common.h"
-#include "gpio.h"
-#include "ivt.h"
-#include "irq.h"
-#include "uart.h"
 #include "cdev.h"
 
 void Fn(void *arg) {
@@ -67,7 +63,7 @@ static int __init main_init(void)
 
   //ivt_main();
   /*Initialization Part*/
-  uart0_main();
+  //uart0_main();
   /*Non-zero return means that the module couldn't be loaded.*/
   return 0;    
 }
