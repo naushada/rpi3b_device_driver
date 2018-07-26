@@ -14,7 +14,7 @@ SRCS = peripheral/src/main.c \
        peripheral/src/rpi.c  \
        peripheral/src/spi.c  \
        peripheral/src/spi0.c \
-       cdev/src/rpi3b_cdev.c
+       cdev/src/cdev.c
 
 ccflags-y := $(INCLUDE_DIR)
 

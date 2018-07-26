@@ -7,8 +7,8 @@
 #include <linux/fs.h>
 #include <linux/module.h>
 #include <linux/cdev.h>
-//#include <asm/access.h>
-//#include <asm/errno.h>
+#include <asm/uaccess.h>
+#include <asm/errno.h>
 
 #define SHIFT 0
 

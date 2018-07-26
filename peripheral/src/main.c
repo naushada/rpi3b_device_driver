@@ -1,13 +1,12 @@
 #ifndef __MAIN_C__
 #define __MAIN_C__
 
-//#include <stdio.h>
 #include "common.h"
 #include "gpio.h"
 #include "ivt.h"
 #include "irq.h"
 #include "uart.h"
-#include "rpi3b_cdev.h"
+#include "cdev.h"
 
 void Fn(void *arg) {
   printk(KERN_INFO "\nCallback is calledFn\n");
@@ -56,11 +55,15 @@ int main(int argc, char *argv[]) {
 
 #endif
 
+void main_init_driver(char *path_name) {
+
+}/*main_init_driver*/
 
 static int __init main_init(void)
 {
   printk(KERN_INFO "RPI 3B CDEV Init\n");
-  rpi3b_cdev_init();
+  /*Initialize the character devices*/
+  __cdev_init();
 
   //ivt_main();
   /*Initialization Part*/
@@ -72,7 +75,7 @@ static int __init main_init(void)
 static void __exit main_cleanup(void)
 {
   printk(KERN_INFO "Cleaning up module.\n");
-  rpi3b_cdev_destroy();
+  __cdev_destroy();
 }
 
 module_init(main_init);
