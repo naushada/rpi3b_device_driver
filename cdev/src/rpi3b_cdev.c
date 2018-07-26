@@ -4,13 +4,14 @@
 #include "common.h"
 #include "rpi3b_cdev.h"
 
-static unsigned char *device_name[] = { "/uart/uart0" ,
-                                        "/uart/uart1" ,
-                                        "/spis/spi0"  ,
-                                        "/spis/spi1"  ,
-                                        "/spim/spi0"  ,
-                                        "/i2c/i2c0"   ,
-                                        "/i2c/i2c1"   ,
+static unsigned char *device_name[] = { "/rpi3b/uart/uart0" ,
+                                        "/rpi3b/uart/uart1" ,
+                                        "/rpi3b/spis/spi0"  ,
+                                        "/rpi3b/spis/spi1"  ,
+                                        "/rpi3b/spim/spi0"  ,
+                                        "/rpi3b/i2c/i2c0"   ,
+                                        "/rpi3b/i2c/i2c1"   ,
+                                        "/rpi3b/gpio"       ,
                                         NULL};
 
 /*This holds the opened device major NUmber*/
@@ -45,18 +46,40 @@ ssize_t rpi3b_write(struct file *fp,
 #endif
   unsigned int idx;
   for(idx = 0; idx < in_len; idx++) {
-    printk(KERN_INFO "%X \t", in_ptr[idx]);
+    printk(KERN_INFO "%X", in_ptr[idx]);
   }
+
+  /*To flush the last element*/
+  printk(KERN_INFO "\n");
 
   return(in_len);
 }/*rpi3b_write*/
 
 /*https://linux-kernel-labs.github.io/master/labs/device_drivers.html*/
 int rpi3b_open(struct inode *object, struct file *fp) {
+  char *p_name;
+  char *tmp;
 
- printk(KERN_INFO "f_mode %d f_pos %lld f_flags %d",
-          fp->f_mode, fp->f_pos, fp->f_flags);
+  printk(KERN_INFO "f_mode %d f_pos %lld f_flags %d",
+           fp->f_mode, fp->f_pos, fp->f_flags);
 
+  tmp = (char *)__get_free_page(GFP_KERNEL);
+
+  if (!tmp) {
+    printk(KERN_INFO "Memory Allocation Failed\n"); 
+    return -ENOMEM;
+  }
+
+  p_name = d_path(&fp->f_path, tmp, PAGE_SIZE);
+
+  if(IS_ERR(p_name)) {
+    printk(KERN_INFO "d_path Failed\n"); 
+    free_page((unsigned long)tmp);
+    return PTR_ERR(p_name);
+  }
+
+  printk(KERN_INFO "path_name is %s\n", p_name);
+  free_page((unsigned long)tmp);
   return(0);
 }/*rpi3b_open*/
 
