@@ -127,9 +127,18 @@ void uart0_enable_fifo(void) {
 
 void uart0_send_data(unsigned char value) {
   unsigned int data = 0;
+  unsigned int fr_reg = 0;
+
+  while(1) {
+   /*Wait Until TX-FIFO has a room for new byte*/
+    fr_reg = uart0_read_REG(UART0_FR);
+    if((GET(UART0_FR, TXFF, fr_reg)) == 0) 
+      break;
+  }
 
   data = SET(UART0_DR, DATA, data, value);
-  uart0_program_REG(UART0_IMSC, data);
+  uart0_program_REG(UART0_DR, data);
+  printk(KERN_INFO "data 0x%X", data);
 }/*uart0_send_data*/
 
 void uart0_enable_rxintr(void) {
@@ -193,11 +202,11 @@ void uart0_main(void) {
   gpio_clear_PUDCLKn(14);
   gpio_clear_PUDCLKn(15);
 
-    uart0_set_baudrate(9600);
+  uart0_set_baudrate(9600);
   printk("\nSetting Baudrate\n");
   /*8Bits word, no Parity and no stop bits*/
   data = uart0_read_REG(UART0_LCRH);
-  data |= SET(UART0_LCRH, WLEN, data, 0x03);
+  data = SET(UART0_LCRH, WLEN, data, 0x03/*wordlength = 8bits*/);
   uart0_program_REG(UART0_LCRH, data);
 
   uart0_enable_fifo();
